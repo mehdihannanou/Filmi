@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>فيلمي – تطبيق الأفلام</title>
+<style>
+:root{--bg:#0e1a1f;--panel:#17282f;--ink:#f2ead8;--mute:#9fb0b3;--amber:#ffb020;--coral:#ff5a4e;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:light){:root:not([data-theme="dark"]){--bg:#f2ead8;--panel:#e6dcc4;--ink:#0e1a1f;--mute:#4d5f63}}
+:root[data-theme="dark"]{--bg:#0e1a1f;--panel:#17282f;--ink:#f2ead8;--mute:#9fb0b3}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Segoe UI",Tahoma,"Noto Naskh Arabic",system-ui,sans-serif}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+:focus-visible{outline:3px solid var(--amber);outline-offset:2px}
+header{display:flex;align-items:center;gap:10px;padding:14px 16px;position:sticky;top:env(safe-area-inset-top,0px);background:var(--bg);z-index:5}
+.logo{width:44px;height:44px;flex:none}
+header h1{margin:0;font-size:24px}
+#q{flex:1;min-width:0;padding:10px 14px;border-radius:999px;border:2px solid var(--panel);background:var(--panel);color:var(--ink);font:inherit}
+.chips{display:flex;gap:8px;overflow-x:auto;padding:0 16px 8px}
+.chips button{flex:none;padding:8px 16px;border-radius:999px;background:var(--panel);color:var(--mute)}
+.chips button[aria-pressed="true"]{background:var(--amber);color:#0e1a1f;font-weight:700}
+.hero{margin:8px 16px 4px;border-radius:24px;padding:24px 20px;min-height:200px;display:flex;flex-direction:column;justify-content:flex-end;color:#fff;cursor:pointer;text-align:right;width:calc(100% - 32px)}
+.hero b{font-size:26px}.hero span{opacity:.9;font-size:14px;margin-top:4px}
+h2{font-size:17px;margin:20px 16px 10px}
+.row{display:flex;gap:12px;overflow-x:auto;padding:0 16px 6px}
+.card{flex:none;width:130px;text-align:right}
+.poster{aspect-ratio:2/3;border-radius:14px;padding:10px;display:flex;align-items:flex-end;color:#fff;font-weight:800;font-size:15px;line-height:1.3;text-shadow:0 1px 6px rgba(0,0,0,.5)}
+.card small{display:block;color:var(--mute);margin-top:6px}
+.empty{margin:20px 16px;color:var(--mute)}
+dialog{border:0;border-radius:24px;padding:0;background:var(--panel);color:var(--ink);width:min(420px,92vw)}
+dialog::backdrop{background:rgba(0,0,0,.6)}
+.d-top{padding:60px 20px 16px;color:#fff}
+.d-top b{font-size:24px}
+.d-body{padding:16px 20px 20px}
+.meta{color:var(--mute);font-size:14px;margin-bottom:10px}
+.d-body p{line-height:1.7;margin:0 0 16px}
+.btn{padding:12px 20px;border-radius:14px;background:var(--amber);color:#0e1a1f;font-weight:700;margin-inline-end:8px}
+.btn.sec{background:rgba(127,127,127,.25);color:var(--ink)}
+.login{padding:8px 14px;border-radius:999px;background:var(--amber);color:#0e1a1f;font-weight:700;flex:none;max-width:90px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ad{margin:12px 16px;padding:18px;border:2px dashed var(--mute);border-radius:14px;text-align:center;color:var(--mute);font-size:13px}
+.fld{width:100%;padding:12px;margin-bottom:10px;border-radius:12px;border:2px solid rgba(127,127,127,.3);background:var(--bg);color:var(--ink);font:inherit}
+</style>
+</head>
+<body>
+<header>
+<svg class="logo" viewBox="0 0 64 64" role="img" aria-label="شعار فيلمي">
+<rect width="64" height="64" rx="16" fill="#ffb020"/>
+<path d="M10 24h44v28a4 4 0 0 1-4 4H14a4 4 0 0 1-4-4z" fill="#0e1a1f"/>
+<path d="M10 24l-2-9 40-7 2 9zM20 22l-4-10M32 20l-4-10M44 18l-4-10" stroke="#0e1a1f" stroke-width="4" stroke-linejoin="round" fill="#ffb020"/>
+<path d="M28 33l12 8-12 8z" fill="#ff5a4e"/>
+</svg>
+<h1>فيلمي</h1>
+<input id="q" type="search" placeholder="قلب على فيلم..." aria-label="بحث">
+<button id="lg" class="login">دخول</button>
+</header>
+<div class="chips" id="chips"></div>
+<div class="ad">مساحة إعلان</div>
+<button class="hero" id="hero"></button>
+<div id="rows"></div>
+<dialog id="dlg"></dialog>
+<dialog id="login"></dialog>
+
+<script>
+const F=[
+{t:'رحلة إلى القمر',y:1902,g:'خيال علمي',l:'ملكية عامة',d:'أول فيلم خيال علمي فالتاريخ: علماء كيسافرو للقمر فمدفع عملاق.',u:'https://archive.org/search?query=A Trip to the Moon 1902'},
+{t:'نوسفيراتو',y:1922,g:'رعب',l:'ملكية عامة',d:'فيلم صامت كلاسيكي على كونت غريب كيوصل لمدينة وكتبدا معاه الكوابيس.',u:'https://archive.org/search?query=Nosferatu 1922'},
+{t:'متروبوليس',y:1927,g:'خيال علمي',l:'ملكية عامة (أمريكا)',d:'مدينة مستقبلية مقسومة بين الأغنياء فالفوق والعمال فالتحت.',u:'https://archive.org/search?query=Metropolis 1927'},
+{t:'الأرنب الكبير',y:2008,g:'أنيميشن',l:'CC BY',d:'أرنب كبير ومسالم كيدير خطة ذكية باش يرد على ثلاث حيوانات مزعجة.',u:'https://peach.blender.org/'},
+{t:'سنتل',y:2010,g:'أنيميشن',l:'CC BY',d:'شابة شجاعة كتقلب على تنين صغير ضاع منها، والطريق طويلة.',u:'https://durian.blender.org/'},
+{t:'دموع من فولاذ',y:2012,g:'خيال علمي',l:'CC BY',d:'مجموعة ديال العلماء كتحاول توقف الروبوطات فأمستردام المستقبلية.',u:'https://mango.blender.org/'},
+{t:'ليلة الموتى الأحياء',y:1968,g:'رعب',l:'ملكية عامة (أمريكا)',d:'ناس محاصرين فدار فالليل وكيتخبطو مع كائنات غريبة فالخارج.',u:'https://archive.org/search?query=Night of the Living Dead 1968'},
+{t:'الطفل',y:1921,g:'كوميديا',l:'ملكية عامة (أمريكا)',d:'متشرد كيربي طفل لقاه فالزنقة، وكيتعلقو ببعضهم بزاف.',u:'https://archive.org/search?query=The Kid 1921 Chaplin'},
+{t:'حلم الفيل',y:2006,g:'أنيميشن',l:'CC BY',d:'رجلين كيتجولو فآلة عملاقة ومعقدة وعالم غريب ما كيفهمو فيه والو.',u:'https://orange.blender.org/'}
+];
+const COL=[['#ff5a4e','#7a1d3a'],['#ffb020','#b8461a'],['#2dd4bf','#0b5b73'],['#a78bfa','#3b1d7a'],['#f472b6','#7a1d5a'],['#60a5fa','#1d3f7a']];
+const bg=(i)=>{const c=COL[i%COL.length];return `linear-gradient(160deg,${c[0]},${c[1]})`};
+const $=id=>document.getElementById(id);
+let n=0,user='',genre='الكل',list=new Set(),q='';
+const genres=['الكل',...new Set(F.map(f=>f.g))];
+
+function chips(){
+ $('chips').innerHTML='';
+ genres.forEach(g=>{const b=document.createElement('button');b.textContent=g;b.setAttribute('aria-pressed',g===genre);b.onclick=()=>{genre=g;chips();render()};$('chips').appendChild(b)});
+}
+function card(f){
+ const i=F.indexOf(f),b=document.createElement('button');b.className='card';
+ b.innerHTML='<div class="poster"></div><small></small>';
+ b.firstChild.style.background=bg(i);b.firstChild.textContent=f.t;
+ b.lastChild.textContent=f.y+' · '+f.l;
+ b.onclick=()=>open(f);return b;
+}
+function row(title,items){
+ if(!items.length)return;
+ const h=document.createElement('h2');h.textContent=title;
+ const r=document.createElement('div');r.className='row';
+ items.forEach(f=>r.appendChild(card(f)));
+ $('rows').append(h,r);if(++n%2===0){const a=document.createElement('div');a.className='ad';a.textContent='مساحة إعلان';$('rows').append(a)}
+}
+function render(){
+ const hf=F[3];
+ $('hero').style.background=bg(F.indexOf(hf));
+ $('hero').innerHTML='<b></b><span></span>';
+ $('hero').firstChild.textContent=hf.t;$('hero').lastChild.textContent=hf.g+' · '+hf.l;
+ $('hero').onclick=()=>open(hf);
+ $('rows').innerHTML='';n=0;
+ const m=F.filter(f=>(genre==='الكل'||f.g===genre)&&f.t.includes(q.trim()));
+ if(!m.length){$('rows').innerHTML='<p class="empty">ما لقينا حتى فيلم. جرب كلمة أخرى.</p>';return}
+ row('قائمتي',F.filter(f=>list.has(f.t)));
+ row(genre==='الكل'?'كلاسيكيات':genre,[...m].sort((a,b)=>a.y-b.y));
+ if(genre==='الكل')row('الأحدث',[...m].sort((a,b)=>b.y-a.y).slice(0,5));
+}
+function open(f){
+ const d=$('dlg'),on=list.has(f.t);
+ d.innerHTML='<div class="d-top"><b></b></div><div class="d-body"><div class="meta"></div><p></p><a class="btn" target="_blank" rel="noopener" style="display:inline-block;text-decoration:none">شوف الفيلم</a><button class="btn sec" id="fv"></button><button class="btn sec" id="cx">سد</button></div>';
+ d.querySelector('.d-top').style.background=bg(F.indexOf(f));
+ d.querySelector('b').textContent=f.t;
+ d.querySelector('.meta').textContent=f.y+' · '+f.g+' · '+f.l;
+ d.querySelector('p').textContent=f.d;
+ d.querySelector('a').href=f.u;
+ const b=d.querySelector('#fv');b.textContent=on?'حيد من قائمتي':'زيد لقائمتي';
+ b.onclick=()=>{on?list.delete(f.t):list.add(f.t);d.close();render()};
+ d.querySelector('#cx').onclick=()=>d.close();
+ d.showModal();
+}
+$('lg').onclick=()=>{
+ if(user){user='';$('lg').textContent='دخول';return}
+ const d=$('login');
+ d.innerHTML='<div class="d-body"><h3 style="margin:0 0 12px">تسجيل الدخول</h3><input id="em" class="fld" placeholder="الاسم أو الإيميل"><input class="fld" type="password" placeholder="كلمة السر"><button class="btn" id="go">دخول</button><button class="btn sec" id="cl">سد</button><p class="meta" style="margin:12px 0 0">هادا تصميم فقط. التسجيل الحقيقي خاصو سيرفر.</p></div>';
+ d.querySelector('#go').onclick=()=>{user=d.querySelector('#em').value.trim()||'ضيف';$('lg').textContent=user;d.close()};
+ d.querySelector('#cl').onclick=()=>d.close();
+ d.showModal();
+};
+$('q').oninput=e=>{q=e.target.value;render()};
+chips();render();
+</script>
+</body>
+</html>
